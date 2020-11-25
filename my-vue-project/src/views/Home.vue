@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-19 18:20:03
- * @LastEditTime: 2020-11-24 17:12:26
+ * @LastEditTime: 2020-11-25 17:27:00
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /my-vue-project/src/views/Home.vue
@@ -30,7 +30,7 @@
           <header class="good-header">新品上线</header>
           <div class="goodBox">
             <div class="goodItem" v-for="item in newGoodses" :key="item.goodsId" @click="goToDetail(item)">
-              <img :src="prefix(item.goodsCoverImg)" alt="">
+              <img :src="prefix.item.goodsCoverImg" alt="">
               <div class="good-desc">
                 <div class="title">{{ item.goodsName }}</div>
                 <div class="price">￥ {{ item.sellingPrice }}</div>
@@ -41,9 +41,12 @@
         </div>
 </template>
 <script>
-import {Toast} from 'vant'
+// import navBar from '@/components/NavBar'
+// import swiper from '@/components/Swiper'
 import { getHome } from '../service/home'
 import { getUserInfo } from '../service/user'
+import { getLocal } from '@/common/js/utils'
+import { Toast } from 'vant'
 export default {
   name: 'home',
   data () {
@@ -93,15 +96,29 @@ export default {
             categoryId: 100010
           }
       ],
-    }
+    },
+    prefix = (url) => {
+  if (url && url.startsWith('http')) {
+    return url
+  } else {
+    url = `http://47.99.134.126:28019${url}`
+    return url
+  }
+  }
+  },
+ async mounted() {
+    const { data } = await getHome()
+    const token = getLocal('token')
+    this.newGoodses = data.newGoodses
   },
   methods: {
      goToDetail(item) {
       this.$router.push({ path: `product/${item.goodsId}` })
       console.log("新增图片")
     }
-  },
   }
+}
+
 </script>
 
 <style scoped>
@@ -183,6 +200,4 @@ export default {
   left: 0;
   right: 0;
 }
-
-
 </style>

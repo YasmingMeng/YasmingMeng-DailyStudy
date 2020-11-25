@@ -4304,6 +4304,7 @@ tdist.getLev3 = function(t) {
 // }
 
 // 图片前缀方法
+console.log("picture")
 export const prefix = (url) => {
   if (url && url.startsWith('http')) {
     return url
