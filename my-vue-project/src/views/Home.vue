@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-19 18:20:03
- * @LastEditTime: 2020-11-25 17:27:00
+ * @LastEditTime: 2020-11-27 18:02:54
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /my-vue-project/src/views/Home.vue
@@ -10,16 +10,21 @@
 <template>
     <div>
         <header class="home-header" :class="{'active':headerScroll}">
-                <router-link tag="i" to="#"><i class="nbmenu2"></i></router-link>
-            <div class="header-serch">
+                <router-link tag="i" to="#"><i class="nbicon nbmenu2"></i></router-link>
+            <div class="header-search">
                 <span class="app-name">新蜂商城</span>
+                <i class="iconfont icon-search"></i>
                 <router-link tag="span" class="search-title" to="#">芳草萋萋</router-link>
             </div>
-                <router-link tag="span" class="login" to="#">登录</router-link>
+            <div class="header-login">
+                <router-link tag="span" class="login" to="./login">登录</router-link>
                 <router-link tag="span" class="login" to="#">
                     <van-icon name="manager-o" />
                 </router-link>
+            </div>
         </header>
+        <nav-bar></nav-bar>
+        <swiper  :list="swiperList"></swiper>
         <div class="category-list">
           <div v-for="item in categoryList" v-bind:key="item.categoryId">
             <img :src="item.imgUrl">
@@ -30,7 +35,7 @@
           <header class="good-header">新品上线</header>
           <div class="goodBox">
             <div class="goodItem" v-for="item in newGoodses" :key="item.goodsId" @click="goToDetail(item)">
-              <img :src="prefix.item.goodsCoverImg" alt="">
+              <img :src="prefix(item.goodsCoverImg)" alt="">
               <div class="good-desc">
                 <div class="title">{{ item.goodsName }}</div>
                 <div class="price">￥ {{ item.sellingPrice }}</div>
@@ -38,21 +43,51 @@
             </div>
           </div>
         </div>
+        <div class="good">
+          <header class="good-header">热门商品</header>
+          <div class="goodBox">
+            <div class="goodItem" v-for="item in hots" :key="item.goodsId" @click="goToDetail(item)">
+              <img :src="prefix(item.goodsCoverImg)" alt="">
+              <div class="good-desc">
+                <div class="title"> {{ item.goodsName}}</div>
+                <div class="price"> {{ item.sellingPrice }}</div>
+              </div>
+            </div>
+          </div>
         </div>
+        <div class="good">
+          <header class="good-header">推荐商品</header>
+          <div class="goodBox">
+            <div class="goodItem" v-for="item in recommends" :key="item.goodsId" @click="goToDetail(item)">
+              <img :src="prefix(item.goodsCoverImg)" alt="">
+              <div class="good-desc">
+                <div class="title"> {{ item.goodsName}}</div>
+                <div class="price"> {{ item.sellingPrice }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 </template>
 <script>
-// import navBar from '@/components/NavBar'
-// import swiper from '@/components/Swiper'
+
+import navBar from '../components/NavBar'
+import swiper from '@/components/Swiper'
 import { getHome } from '../service/home'
 import { getUserInfo } from '../service/user'
 import { getLocal } from '@/common/js/utils'
 import { Toast } from 'vant'
+import Swiper from '../components/Swiper.vue'
 export default {
   name: 'home',
   data () {
     return {
       headerScroll: false,
+      swiperList: [],
+      islogin: false,
+      hots: [],
       newGoodses: [],
+      recommends: [],
       categoryList: [
           {
             name: '新蜂超市',
@@ -96,26 +131,32 @@ export default {
             categoryId: 100010
           }
       ],
-    },
-    prefix = (url) => {
-  if (url && url.startsWith('http')) {
-    return url
-  } else {
-    url = `http://47.99.134.126:28019${url}`
-    return url
-  }
-  }
+    }
+  },
+  components:{
+    navBar,
+    swiper
   },
  async mounted() {
     const { data } = await getHome()
     const token = getLocal('token')
+    window.addEventListener('scroll', this.pageScroll)
+    this.swiperList = data.carousels
     this.newGoodses = data.newGoodses
+    this.hots = data.hotGoodses
+    console.info(data.recommendGoodses);
+    this.recommends = data.recommendGoodses
+    Toast.clear()
   },
   methods: {
      goToDetail(item) {
       this.$router.push({ path: `product/${item.goodsId}` })
       console.log("新增图片")
-    }
+    },
+    pageScroll() {
+      let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+      scrollTop > 100 ? this.headerScroll = true : this.headerScroll = false
+    },
   }
 }
 
@@ -124,34 +165,37 @@ export default {
 <style scoped>
 .home-header {
   position: fixed;
+  display: flex;
   left: 0;
   top: 0;
   line-height: 50px;
   padding: 0 15px;
   justify-content: space-between;
   width: 100%;
-  height: 50px;
+  height: 80px;
+  z-index: 10000;
 }
 .home-header .nbmenu2 {
   color: #1baeae;
+  line-height: 70px;
 }
-.home-header .nbmenu2:active, .home-header .login:active {
+.home-header.active{
   background: #1baeae;
 }
 .header-search {
   display: flex;
-  width: 74%;
-  height: 20px;
+  width: 50%;
+  height: 40px;
   margin: 10px 0;
   padding: 5px 0;
   color: #232326;
-  background: rgba(255, 255, 255, 7);
+  background: rgba(255, 255, 255, .7);
   border-radius: 20px;
 }
 .home-header .app-name {
   padding: 0 10px;
   color: #1baeae;
-  font-size: 20px;
+  font-size: 30px;
   font-weight: bold;
   border-right: 1px solid #666;
 }
@@ -160,13 +204,25 @@ export default {
   font-size: 17px;
 }
 .home-header .search-title {
-  font-size: 12px;
+  font-size: 14px;
   color: #666;
-  line-height: 21px;
+  line-height: 45px;
+  padding: 0 10px;
 }
-.home-header .login{
+
+.home-header .header-login {
+  display: flex;
+  width: 15%;
+}
+.home-header .header-login .login{
     color: #1baeae;
     line-height: 52px;
+}
+.home-header.active .header-login .login {
+    color: #fff;
+}
+.home-header.active .nbmenu2 {
+  color: #fff;
 }
 
 .category-list {
@@ -199,5 +255,34 @@ export default {
   position: relative;
   left: 0;
   right: 0;
+}
+
+.good .goodBox {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.good .goodBox .goodItem {
+ box-sizing: border-box;
+ width: 25%;
+ border-bottom: 1px solid #e9e9e9;
+ padding: 10px 10px;
+}
+.good .goodBox .goodItem img {
+  display: block;
+  width: 120px;
+  margin: 0 auto;
+}
+.good .goodBox .goodItem .good-desc {
+  text-align: center;
+  font-size: 14px;
+  padding: 10px 0;
+}
+.good .goodBox .goodItem .good-desc .title {
+  color: #222333;
+}
+.good .goodBox .goodItem .good-desc {
+  font-size: 12px;
+  color: #1baeae;
 }
 </style>
